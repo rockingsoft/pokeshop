@@ -7,6 +7,7 @@ repo_dir=$(dirname "$script_dir")
 cluster=pokeshop
 manifest=${repo_dir}/k8s/k3s.yaml
 kubeconfig=${repo_dir}/.bin/kubeconfig-${cluster}.yaml
+server_node=k3d-${cluster}-server-0
 
 if [ -x "${repo_dir}/.bin/k3d" ]; then
 	k3d=${repo_dir}/.bin/k3d
@@ -25,6 +26,14 @@ require() {
 
 cluster_exists() {
 	"$k3d" cluster list --no-headers 2>/dev/null | awk '{print $1}' | grep -Fxq "$cluster"
+}
+
+require_imported_image() {
+	image=$1
+	if ! docker exec "$server_node" ctr --namespace k8s.io images list --quiet | grep -Fxq "$image"; then
+		echo "Image import failed: '$image' is not present in K3s containerd" >&2
+		return 1
+	fi
 }
 
 wait_for_deployments() {
@@ -75,6 +84,8 @@ up() {
 	"$k3d" image import --cluster "$cluster" \
 		pokeshop-api:k3s \
 		pokeshop-web:k3s
+	require_imported_image docker.io/library/pokeshop-api:k3s
+	require_imported_image docker.io/library/pokeshop-web:k3s
 	"$k3d" kubeconfig get "$cluster" > "$kubeconfig"
 
 	kubectl --kubeconfig "$kubeconfig" apply -f "$manifest"
