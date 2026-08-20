@@ -1,29 +1,15 @@
-DETACHED      ?= false
-BUILD         ?= false
-export FLAGS
+COMPOSE = docker compose -f docker-compose.yml -f docker-compose.stream.yml
 
-help: Makefile ## show list of commands
-	@echo "Choose a command run:"
-	@echo ""
-	@awk 'BEGIN {FS = ":.*?## "} /[a-zA-Z_-]+:.*?## / {sub("\\\\n",sprintf("\n%22c"," "), $$2);printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+.PHONY: run stop clean test
 
-ifeq ($(DETACHED),true)
-  FLAGS+= --detach
-endif
+run:
+	$(COMPOSE) up --build --detach --remove-orphans
 
-ifeq ($(BUILD),true)
-  FLAGS+= --build
-endif
+stop:
+	$(COMPOSE) stop
 
-run: ## run the minimal Pokeshop stack used by Lamplight
-	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml up ${FLAGS}
+clean:
+	$(COMPOSE) down --volumes --remove-orphans
 
-down: ## stop the minimal Pokeshop stack
-	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml  down
-
-test: ## run Lamplight against an already-running stack
-	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml -f ./docker-compose.test.yml up -d
+test: run
 	lamplight run
-
-build/docker: # build docker image locally
-	docker build . -t kubeshop/demo-pokemon-api:latest
