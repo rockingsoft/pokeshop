@@ -8,3 +8,4 @@ api/.build/
 .idea/
 .DS_Store
 .env
+.bin/

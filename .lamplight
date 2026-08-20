@@ -1,9 +1,58 @@
 project {
-  base_dir = "./lamplight"
-  output   = "pretty"
+  base_dir       = "./lamplight"
+  output         = "pretty"
+  default_target = "compose"
+}
+
+variable "POKESHOP_API_URL" {
+  default = "http://localhost:8081"
+}
+
+variable "KAFKA_BROKER_URL" {
+  default = "localhost:29092"
+}
+
+variable "POKESHOP_GRPC_ADDRESS" {
+  default = "localhost:8082"
+}
+
+variable "JAEGER_ENDPOINT" {
+  default = "http://localhost:16686"
+}
+
+target "compose" {
+  runtime = "docker_compose"
+
+  docker_compose {
+    project  = "pokeshop"
+    services = ["api", "rpc", "jaeger"]
+  }
+
+  variables = {
+    POKESHOP_API_URL      = "http://api:8081"
+    KAFKA_BROKER_URL      = "stream:9092"
+    POKESHOP_GRPC_ADDRESS = "rpc:8082"
+    JAEGER_ENDPOINT       = "http://jaeger:16686"
+  }
+}
+
+target "k3s" {
+  runtime = "kubernetes"
+
+  kubernetes {
+    context   = "k3d-pokeshop"
+    namespace = "pokeshop"
+  }
+
+  variables = {
+    POKESHOP_API_URL      = "http://api:8081"
+    KAFKA_BROKER_URL      = "stream:9092"
+    POKESHOP_GRPC_ADDRESS = "rpc:8082"
+    JAEGER_ENDPOINT       = "http://jaeger:16686"
+  }
 }
 
 datasource "jaeger" {
-  endpoint = "http://localhost:16686"
+  endpoint           = var.JAEGER_ENDPOINT
   observation_window = duration("1m0s")
 }
