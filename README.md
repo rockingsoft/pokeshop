@@ -1,12 +1,23 @@
 # Pokeshop
 
-This is a demo application instrumented with Open Telemetry to generate traces. 
-It was created to be used in our demo page of [Tracetest](https://github.com/kubeshop/tracetest).
+Minimal OpenTelemetry test subject for Lamplight. The basic browser UI is
+available at `http://localhost:3000` and the API at `http://localhost:8081`.
 
-You can see a detailed explanation of Tracetest documentation: https://docs.tracetest.io/live-examples/pokeshop/overview
+It contains only the services exercised by the tests in `lamplight/`: an HTTP
+API, PostgreSQL, Redis, RabbitMQ, Kafka, two background workers, an
+OpenTelemetry Collector, and Jaeger.
 
-## Additional information
+## Run
 
-1. [API Overview](https://github.com/kubeshop/pokeshop/blob/master/docs/overview.md)
-2. [Installation](https://github.com/kubeshop/pokeshop/blob/master/docs/installing.md)
-3. [OpenAPI specs](https://github.com/kubeshop/pokeshop/blob/master/openapi/openapi.yaml)
+```sh
+make run
+```
+
+Use `DETACHED=true` to start in the background and `BUILD=true` to rebuild the
+application image. Once the stack is healthy, run the Lamplight suite:
+
+```sh
+make test
+```
+
+Stop everything with `make down`.

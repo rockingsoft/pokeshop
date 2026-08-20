@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Pokeshop test subject" />
+    <title>Pokeshop</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+    <main class="shop">
+      <header>
+        <div>
+          <p class="eyebrow">Lamplight test subject</p>
+          <h1>Pokeshop</h1>
+          <p>A minimal UI for exercising the instrumented API.</p>
+        </div>
+        <button id="refresh" type="button">Refresh</button>
+      </header>
+
+      <section class="panel actions" aria-labelledby="actions-title">
+        <h2 id="actions-title">Actions</h2>
+        <div class="tabs" role="tablist" aria-label="Pokémon actions">
+          <button id="create-tab" class="tab active" role="tab" aria-selected="true" aria-controls="create-panel" data-tab="create" type="button">Create manually</button>
+          <button id="import-tab" class="tab" role="tab" aria-selected="false" aria-controls="import-panel" data-tab="import" type="button">Import from PokéAPI</button>
+        </div>
+
+        <div id="create-panel" class="tab-panel" role="tabpanel" aria-labelledby="create-tab">
+          <form id="create-form">
+            <label>Name <input name="name" value="pikachu" required /></label>
+            <label>Type <input name="type" value="electric" required /></label>
+            <label>Image <input name="imageUrl" type="url" value="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" required /></label>
+            <button type="submit">Create Pokémon</button>
+          </form>
+        </div>
+
+        <div id="import-panel" class="tab-panel" role="tabpanel" aria-labelledby="import-tab" hidden>
+          <form id="import-form">
+            <div class="autocomplete">
+              <label for="pokemon-search">PokéAPI Pokémon</label>
+              <input id="pokemon-search" type="search" autocomplete="off" placeholder="Search by name…" required />
+              <input id="pokemon-id" name="id" type="hidden" />
+              <div id="pokemon-suggestions" class="suggestions" role="listbox" aria-label="Pokémon suggestions" hidden></div>
+            </div>
+            <button type="submit">Import Pokémon</button>
+          </form>
+        </div>
+      </section>
+
+      <p id="status" role="status" aria-live="polite"></p>
+      <section aria-labelledby="list-title">
+        <h2 id="list-title">Pokémon</h2>
+        <div id="pokemon-list" class="grid"></div>
+      </section>
+    </main>
+    <aside class="trace-panel" aria-labelledby="trace-title">
+      <div class="console-bar">
+        <div class="console-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        <span>Pokeshop Dev Console</span>
+      </div>
+      <div class="console-content">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">OpenTelemetry · SSE live stream</p>
+            <h2 id="trace-title">Recent traces</h2>
+          </div>
+          <button id="clear-traces" class="secondary" type="button">Clear</button>
+        </div>
+        <p id="trace-empty" class="empty">Use the shop to stream trace summaries here in real time.</p>
+        <div id="trace-list" class="trace-list"></div>
+      </div>
+    </aside>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

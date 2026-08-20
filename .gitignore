@@ -8,14 +8,3 @@ api/.build/
 .idea/
 .DS_Store
 .env
-
-cypress/screenshots
-cypress/downloads
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-serverless/.env
-
-# k6 executable 
-/k6

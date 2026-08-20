@@ -11,21 +11,9 @@ receivers:
 processors:
   batch:
 
-  filter:
-    error_mode: ignore
-    traces:
-      span:
-        - 'trace_state["tracetest"] != "true"'
-
 exporters:
-  logging:
-    loglevel: debug
   otlp:
     endpoint: jaeger:4317
-    tls:
-      insecure: true
-  otlp/trace:
-    endpoint: tracetest-agent:4317
     tls:
       insecure: true
 
@@ -33,9 +21,5 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [filter, batch]
-      exporters: [otlp]
-    traces/agent:
-      receivers: [otlp]
       processors: [batch]
-      exporters: [otlp/trace]
+      exporters: [otlp]

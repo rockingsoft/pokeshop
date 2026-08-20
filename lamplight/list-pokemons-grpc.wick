@@ -1,0 +1,43 @@
+test "List Pokemons using gRPC" {
+  step "request" {
+    grpc_request {
+      address  = var.POKESHOP_GRPC_ADDRESS
+      method   = "pokeshop.Pokeshop/GetPokemonList"
+      request  = jsonencode({ skip = 0, take = 20 })
+      protobuf = <<-PROTO
+        syntax = "proto3";
+        package pokeshop;
+        service Pokeshop {
+          rpc GetPokemonList(GetPokemonListRequest) returns (GetPokemonListResponse);
+        }
+        message GetPokemonListRequest { int32 skip = 1; int32 take = 2; }
+        message Pokemon {
+          int32 id = 1;
+          string name = 2;
+          string type = 3;
+          bool isFeatured = 4;
+          string imageUrl = 5;
+        }
+        message GetPokemonListResponse {
+          repeated Pokemon items = 1;
+          int32 totalCount = 2;
+        }
+      PROTO
+    }
+
+    check "gRPC returned a Pokemon list" {
+      response = {
+        "successful gRPC status" = response.status_code == 0
+        "contains Pokemon"       = response.json.totalCount >= 1
+      }
+      spans {
+        matching = (
+          span.name == "pokeshop.Pokeshop/GetPokemonList" &&
+          span.attributes["rpc.system"] == "grpc" &&
+          span.attributes["rpc.method"] == "GetPokemonList"
+        )
+        at_least = 1
+      }
+    }
+  }
+}

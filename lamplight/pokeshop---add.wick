@@ -1,0 +1,56 @@
+test "Pokeshop - Add" {
+  step "request" {
+    http_request {
+      method = "POST"
+      url    = "${var.POKESHOP_API_URL}/pokemon"
+      headers = {
+        "Content-Type" = "application/json"
+      }
+      body = "{\n  \"name\": \"meowth\",\n  \"type\":\"normal\",\n  \"imageUrl\":\"${var.MEOWTH_IMAGE_URL}\",\n  \"isFeatured\": false\n}\n"
+    }
+
+    check "The POST /pokemon was called correctly" {
+      spans {
+        matching = (
+          span.name == "POST /pokemon" &&
+          span.attributes["http.method"] == "POST"
+        )
+        span_assertions = {
+          "assertion 1" = span.attributes["http.status_code"] == 201
+        }
+        at_least = 1
+      }
+    }
+
+    check "The request sent to API is valid" {
+      spans {
+        matching = (
+          span.name == "validate request"
+        )
+        span_assertions = {
+          "assertion 1" = span.attributes["validation.is_valid"] == true
+        }
+        at_least = 1
+      }
+    }
+
+    check "A Pokemon was inserted on database" {
+      spans {
+        matching = (
+          span.name == "create pokeshop.pokemon" &&
+          span.attributes["db.system"] == "postgres" &&
+          span.attributes["db.name"] == "pokeshop" &&
+          span.attributes["db.user"] == "ashketchum" &&
+          span.attributes["db.operation"] == "create" &&
+          span.attributes["db.sql.table"] == "pokemon"
+        )
+        span_assertions = {
+          "assertion 1" = tostring(
+            jsondecode(span.attributes["db.result"]).imageUrl
+          ) == var.MEOWTH_IMAGE_URL
+        }
+        at_least = 1
+      }
+    }
+  }
+}

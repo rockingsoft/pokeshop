@@ -1,0 +1,96 @@
+test "Import a Pokemon using API and MQ Worker" {
+  step "request" {
+    http_request {
+      method = "POST"
+      url    = "${var.POKESHOP_API_URL}/pokemon/import"
+      headers = {
+        "Content-Type" = "application/json"
+      }
+      body = "{\n  \"id\": 143,\n  \"ignoreCache\": true\n}\n"
+    }
+
+    check "POST /pokemon/import was called successfuly" {
+      spans {
+        matching = (
+          span.name == "POST /pokemon/import" &&
+          span.attributes["http.method"] == "POST"
+        )
+        span_assertions = {
+          "assertion 1" = span.attributes["http.status_code"] == 200
+          "assertion 2" = tostring(
+            jsondecode(span.attributes["http.response.body"]).id
+          ) == "143"
+        }
+        at_least = 1
+      }
+    }
+
+    check "The request was validated correctly" {
+      spans {
+        matching = (
+          span.name == "validate request"
+        )
+        span_assertions = {
+          "assertion 1" = span.attributes["validation.is_valid"] == true
+        }
+        at_least = 1
+      }
+    }
+
+    check "A message was enqueued to the worker" {
+      spans {
+        matching = (
+          span.name == "queue.synchronizePokemon publish" &&
+          span.attributes["messaging.system"] == "rabbitmq" &&
+          span.attributes["messaging.destination"] == "queue.synchronizePokemon" &&
+          span.attributes["messaging.operation"] == "publish"
+        )
+        span_assertions = {
+          "assertion 1" = tostring(
+            jsondecode(span.attributes["messaging.payload"]).id
+          ) == "143"
+        }
+        at_least = 1
+      }
+    }
+
+    check "A message was read by the worker" {
+      spans {
+        matching = (
+          span.name == "queue.synchronizePokemon process" &&
+          span.attributes["messaging.system"] == "rabbitmq" &&
+          span.attributes["messaging.destination"] == "queue.synchronizePokemon" &&
+          span.attributes["messaging.operation"] == "process"
+        )
+        span_assertions = {
+          "assertion 1" = tostring(
+            jsondecode(span.attributes["messaging.payload"]).fields.routingKey
+          ) == "queue.synchronizePokemon"
+        }
+        at_least = 1
+      }
+    }
+
+    check "A \"import pokemon\" action was triggered" {
+      spans {
+        matching = (
+          span.name == "import pokemon"
+        )
+        at_least = 1
+      }
+    }
+
+    check "The PokeAPI was called with success" {
+      spans {
+        matching = (
+          span.name == "GET" &&
+          span.attributes["http.method"] == "GET"
+        )
+        span_assertions = {
+          "assertion 1" = span.attributes["http.status_code"] == 200
+        }
+        at_least = 1
+      }
+    }
+  }
+}

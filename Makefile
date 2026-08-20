@@ -1,7 +1,3 @@
-SRCDIR        = docs/diagrams
-OUTPUT_FORMAT = png
-SRC           = $(wildcard $(SRCDIR)/*.mdd)
-OUT           = ${SRC:.mdd=.$(OUTPUT_FORMAT)}
 DETACHED      ?= false
 BUILD         ?= false
 export FLAGS
@@ -19,25 +15,15 @@ ifeq ($(BUILD),true)
   FLAGS+= --build
 endif
 
-generate-diagrams: $(OUT)
-
-$(SRCDIR)/%.$(OUTPUT_FORMAT): $(SRCDIR)/%.mdd
-	npm run generate-diagram -- --input $< --output $@
-
-run/pokeshop: ## run Pokeshop API on docker compose
+run: ## run the minimal Pokeshop stack used by Lamplight
 	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml up ${FLAGS}
 
-down/pokeshop: ## stop Pokeshop API running on docker compose
+down: ## stop the minimal Pokeshop stack
 	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml  down
 
-run/tracetests: ## run Trace-based tests on Pokeshop API with Tracetest
-	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml -f ./tracetest/docker-compose.yml run tracebased-tests
-
-run: ## run Pokeshop API on Docker Compose and run Trace-based tests with Tracetest
-	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml -f ./tracetest/docker-compose.yml up ${FLAGS}
-
-down: ## stop Pokeshop API on Docker Compose and run Trace-based tests with Tracetest
-	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml -f ./tracetest/docker-compose.yml down
+test: ## run Lamplight against an already-running stack
+	docker compose -f docker-compose.yml -f ./docker-compose.stream.yml -f ./docker-compose.test.yml up -d
+	lamplight run
 
 build/docker: # build docker image locally
 	docker build . -t kubeshop/demo-pokemon-api:latest

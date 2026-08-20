@@ -1,0 +1,38 @@
+test "Import a Pokemon reading a Stream" {
+  step "request" {
+    kafka_request {
+      broker_urls   = [var.KAFKA_BROKER_URL]
+      topic         = "pokemon"
+      message_value = "{\"id\":143}"
+      message_key   = "snorlax-key"
+    }
+
+    check "A message was received from Kafka stream" {
+      spans {
+        matching = (
+          span.name == "pokemon process" &&
+          span.attributes["messaging.system"] == "kafka" &&
+          span.attributes["messaging.destination"] == "pokemon" &&
+          span.attributes["messaging.destination_kind"] == "topic" &&
+          span.attributes["messaging.operation"] == "process"
+        )
+        span_assertions = {
+          "assertion 1" = span.attributes["messaging.system"] == "kafka"
+        }
+        at_least = 1
+      }
+    }
+
+    check "Import Pokemon use case was triggered" {
+      spans {
+        matching = (
+          span.name == "import pokemon"
+        )
+        span_assertions = {
+          "assertion 1" = span.name == "import pokemon"
+        }
+        at_least = 1
+      }
+    }
+  }
+}

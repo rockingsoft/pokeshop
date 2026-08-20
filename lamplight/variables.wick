@@ -1,0 +1,19 @@
+variable "POKESHOP_API_URL" {
+  default = "http://localhost:8081"
+}
+
+variable "KAFKA_BROKER_URL" {
+  default = "localhost:29092"
+}
+
+variable "POKESHOP_GRPC_ADDRESS" {
+  default = "localhost:8082"
+}
+
+variable "MEOWTH_IMAGE_URL" {
+  default = "https://assets.pokemon.com/assets/cms2/img/pokedex/full/052.png"
+}
+
+variable "SNORLAX_IMAGE_URL" {
+  default = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png"
+}
