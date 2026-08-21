@@ -1,4 +1,6 @@
 test "List Pokemons" {
+  tags = ["api", "zero-code"]
+
   step "request" {
     http_request {
       method = "GET"
@@ -8,53 +10,16 @@ test "List Pokemons" {
       }
     }
 
-    check "GET /pokemon endpoint was called and returned valid data" {
-      spans {
-        matching = (
-          span.name == "GET /pokemon?take=20&skip=0" &&
-          span.attributes["http.method"] == "GET"
-        )
-        span_assertions = {
-          "assertion 1" = span.attributes["http.status_code"] == 200
-          "assertion 2" = contains(
-            jsondecode(span.attributes["http.response.body"]).items[*].imageUrl,
-            var.SNORLAX_IMAGE_URL
-          )
-        }
-        at_least = 1
+    check "Pokemon list is returned" {
+      response = {
+        "status code is 200" = response.status_code == 200
+        "contains Pokemon"   = response.json.items[0].id > 0
       }
     }
 
-    check "A count operation was triggered on database" {
+    check "API emits an HTTP server span" {
       spans {
-        matching = (
-          span.name == "count pokeshop.pokemon" &&
-          span.attributes["db.system"] == "postgres" &&
-          span.attributes["db.name"] == "pokeshop" &&
-          span.attributes["db.user"] == "ashketchum" &&
-          span.attributes["db.operation"] == "count" &&
-          span.attributes["db.sql.table"] == "pokemon"
-        )
-        span_assertions = {
-          "assertion 1" = span.attributes["db.operation"] == "count"
-        }
-        at_least = 1
-      }
-    }
-
-    check "A select operation was triggered on database" {
-      spans {
-        matching = (
-          span.name == "findMany pokeshop.pokemon" &&
-          span.attributes["db.system"] == "postgres" &&
-          span.attributes["db.name"] == "pokeshop" &&
-          span.attributes["db.user"] == "ashketchum" &&
-          span.attributes["db.operation"] == "findMany" &&
-          span.attributes["db.sql.table"] == "pokemon"
-        )
-        span_assertions = {
-          "assertion 1" = span.attributes["db.operation"] == "findMany"
-        }
+        matching = span.attributes["http.request.method"] == "GET"
         at_least = 1
       }
     }

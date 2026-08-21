@@ -36,6 +36,26 @@ require_imported_image() {
 	fi
 }
 
+wait_for_containerd() {
+	attempt=0
+	stable=0
+	while [ "$attempt" -lt 60 ]; do
+		if docker exec "$server_node" sh -c 'test -S /run/k3s/containerd/containerd.sock' >/dev/null 2>&1 &&
+			docker exec "$server_node" ctr --namespace k8s.io version >/dev/null 2>&1; then
+			stable=$((stable + 1))
+			if [ "$stable" -ge 3 ]; then
+				return
+			fi
+		else
+			stable=0
+		fi
+		sleep 1
+		attempt=$((attempt + 1))
+	done
+	echo "K3s containerd did not become stable within 60 seconds" >&2
+	return 1
+}
+
 wait_for_deployments() {
 	attempt=0
 	while [ "$attempt" -lt 60 ]; do
@@ -78,6 +98,7 @@ up() {
 	else
 		"$k3d" cluster start "$cluster" >/dev/null 2>&1 || true
 	fi
+	wait_for_containerd
 
 	docker build --tag pokeshop-api:k3s .
 	docker build --tag pokeshop-web:k3s ./web

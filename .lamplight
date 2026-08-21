@@ -58,6 +58,6 @@ datasource "otlp" {
 }
 
 instrumentation "obi" {
-  open_ports          = [80]
-  context_propagation = "headers"
+  open_ports          = [80, 8081, 8082, 9092]
+  context_propagation = "all"
 }

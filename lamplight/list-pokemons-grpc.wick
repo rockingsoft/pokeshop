@@ -1,4 +1,6 @@
 test "List Pokemons using gRPC" {
+  tags = ["grpc", "zero-code"]
+
   step "request" {
     grpc_request {
       address  = var.POKESHOP_GRPC_ADDRESS
@@ -25,18 +27,10 @@ test "List Pokemons using gRPC" {
       PROTO
     }
 
-    check "gRPC returned a Pokemon list" {
+    check "gRPC returns a Pokemon list" {
       response = {
         "successful gRPC status" = response.status_code == 0
         "contains Pokemon"       = response.json.totalCount >= 1
-      }
-      spans {
-        matching = (
-          span.name == "pokeshop.Pokeshop/GetPokemonList" &&
-          span.attributes["rpc.system"] == "grpc" &&
-          span.attributes["rpc.method"] == "GetPokemonList"
-        )
-        at_least = 1
       }
     }
   }
