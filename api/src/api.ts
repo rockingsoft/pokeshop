@@ -7,10 +7,8 @@ import createHandler from '@pokemon/handlers/create.handler';
 import getHandler from '@pokemon/handlers/get.handler';
 import importHandler from '@pokemon/handlers/import.handler';
 import healthcheckHandler from '@pokemon/handlers/healthcheck.handler';
-import traceSummaryHandler from '@pokemon/handlers/traceSummary.handler';
 import eventsHandler from '@pokemon/handlers/events.handler';
 import { setupSequelize } from '@pokemon/utils/db';
-import { instrumentRoute } from '@pokemon/middlewares/instrumentation';
 
 const { APP_PORT = 8081 } = process.env;
 
@@ -25,7 +23,6 @@ async function startApp() {
     createHandler,
     getHandler,
     importHandler,
-    traceSummaryHandler,
     eventsHandler,
   ];
 
@@ -35,7 +32,6 @@ async function startApp() {
 
   app
     .use(cors({ exposeHeaders: ['X-Trace-Id', 'X-Span-Id'] }))
-    .use(instrumentRoute())
     .use(bodyParser())
     .use(KoaLogger())
     .use(router.routes())

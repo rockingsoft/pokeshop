@@ -1,11 +1,15 @@
 # Pokeshop
 
-Minimal OpenTelemetry test subject for Lamplight. The basic browser UI is
+Zero-code instrumentation test subject for Lamplight. You do not have to
+instrument or reconfigure the application: there is no telemetry SDK, OTEL
+environment configuration, Collector, Jaeger, or other tracing backend in the
+stack. The basic browser UI is
 available at `http://localhost:3000` and the API at `http://localhost:8081`.
 
 It contains only the services exercised by the tests in `lamplight/`: an HTTP
-API, PostgreSQL, Redis, RabbitMQ, Kafka, two background workers, an
-OpenTelemetry Collector, and Jaeger.
+API, PostgreSQL, Redis, RabbitMQ, Kafka, and two background workers. Pokeshop
+does not include any tracing component; Lamplight starts OBI and its embedded
+OTLP receiver for each trace-based test run and cleans them up afterwards.
 
 ## Run
 
@@ -13,16 +17,16 @@ OpenTelemetry Collector, and Jaeger.
 make run
 ```
 
-Use `DETACHED=true` to start in the background and `BUILD=true` to rebuild the
-application image. Once the stack is healthy, run the Lamplight suite:
+Run the zero-code trace test with one command:
 
 ```sh
 make test
 ```
 
-Lamplight uses the `compose` Docker Compose target by default. It creates an
-ephemeral runner on the existing Compose network, so the tracing and application
-ports do not need to be exposed.
+`make test` starts the application stack. Lamplight uses the `compose` Docker
+Compose target by default and creates an
+ephemeral runner and OBI agent on the existing Compose network, so application
+images, source code, and environment variables do not need telemetry changes.
 
 Stop and remove everything with `make clean`.
 

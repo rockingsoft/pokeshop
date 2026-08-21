@@ -35,4 +35,4 @@ for image in $lamplight_images; do
 	fi
 done
 
-KUBECONFIG="$kubeconfig" "$lamplight" run --target k3s --output "$output" </dev/null
+KUBECONFIG="$kubeconfig" "$lamplight" run --target k3s --tag zero-code --output "$output" </dev/null

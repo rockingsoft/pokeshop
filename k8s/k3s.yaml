@@ -3,34 +3,6 @@ kind: Namespace
 metadata:
   name: pokeshop
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: otel-collector
-  namespace: pokeshop
-data:
-  collector.config.yaml: |
-    receivers:
-      otlp:
-        protocols:
-          grpc:
-          http:
-            cors:
-              allowed_origins: ["http://*", "https://*"]
-    processors:
-      batch:
-    exporters:
-      otlp:
-        endpoint: jaeger:4317
-        tls:
-          insecure: true
-    service:
-      pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [batch]
-          exporters: [otlp]
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -142,82 +114,6 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jaeger
-  namespace: pokeshop
-spec:
-  replicas: 1
-  selector:
-    matchLabels: {app: jaeger}
-  template:
-    metadata:
-      labels: {app: jaeger}
-    spec:
-      containers:
-        - name: jaeger
-          image: jaegertracing/all-in-one:latest
-          ports:
-            - {name: query, containerPort: 16686}
-            - {name: otlp-grpc, containerPort: 4317}
-          readinessProbe:
-            httpGet: {path: /, port: query}
-            periodSeconds: 2
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: jaeger
-  namespace: pokeshop
-spec:
-  selector: {app: jaeger}
-  ports:
-    - {name: query, port: 16686, targetPort: query}
-    - {name: otlp-grpc, port: 4317, targetPort: otlp-grpc}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: otel-collector
-  namespace: pokeshop
-spec:
-  replicas: 1
-  selector:
-    matchLabels: {app: otel-collector}
-  template:
-    metadata:
-      labels: {app: otel-collector}
-    spec:
-      initContainers:
-        - name: wait-for-jaeger
-          image: busybox:1.36
-          command: [sh, -c, 'until nc -z jaeger 4317; do sleep 1; done']
-      containers:
-        - name: otel-collector
-          image: otel/opentelemetry-collector-contrib:0.100.0
-          args: [--config, /etc/otel/collector.config.yaml]
-          ports:
-            - {name: otlp-grpc, containerPort: 4317}
-            - {name: otlp-http, containerPort: 4318}
-          volumeMounts:
-            - {name: config, mountPath: /etc/otel}
-      volumes:
-        - name: config
-          configMap:
-            name: otel-collector
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: otel-collector
-  namespace: pokeshop
-spec:
-  selector: {app: otel-collector}
-  ports:
-    - {name: otlp-grpc, port: 4317, targetPort: otlp-grpc}
-    - {name: otlp-http, port: 4318, targetPort: otlp-http}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: stream
   namespace: pokeshop
 spec:
@@ -284,7 +180,7 @@ spec:
       initContainers:
         - name: wait-for-dependencies
           image: busybox:1.36
-          command: [sh, -c, 'until nc -z db 5432 && nc -z cache 6379 && nc -z queue 5672 && nc -z otel-collector 4317; do sleep 1; done']
+          command: [sh, -c, 'until nc -z db 5432 && nc -z cache 6379 && nc -z queue 5672; do sleep 1; done']
       containers:
         - name: api
           image: pokeshop-api:k3s
@@ -294,8 +190,6 @@ spec:
             - {name: DATABASE_URL, value: 'postgresql://ashketchum:squirtle123@db:5432/pokeshop?schema=public'}
             - {name: RABBITMQ_HOST, value: queue}
             - {name: POKE_API_BASE_URL, value: 'https://pokeapi.co/api/v2'}
-            - {name: COLLECTOR_ENDPOINT, value: 'http://otel-collector:4317'}
-            - {name: JAEGER_QUERY_URL, value: 'http://jaeger:16686'}
           ports:
             - {name: http, containerPort: 8081}
           readinessProbe:
@@ -367,16 +261,14 @@ spec:
       initContainers:
         - name: wait-for-dependencies
           image: busybox:1.36
-          command: [sh, -c, 'until nc -z db 5432 && nc -z otel-collector 4317; do sleep 1; done']
+          command: [sh, -c, 'until nc -z db 5432; do sleep 1; done']
       containers:
         - name: rpc
           image: pokeshop-api:k3s
           imagePullPolicy: Never
           env:
             - {name: DATABASE_URL, value: 'postgresql://ashketchum:squirtle123@db:5432/pokeshop?schema=public'}
-            - {name: COLLECTOR_ENDPOINT, value: 'http://otel-collector:4317'}
             - {name: NPM_RUN_COMMAND, value: rpc}
-            - {name: SERVICE_NAME, value: pokeshop-rpc}
             - {name: RPC_PORT, value: '8082'}
           ports:
             - {name: grpc, containerPort: 8082}
@@ -410,7 +302,7 @@ spec:
       initContainers:
         - name: wait-for-dependencies
           image: busybox:1.36
-          command: [sh, -c, 'until nc -z db 5432 && nc -z cache 6379 && nc -z queue 5672 && nc -z otel-collector 4317; do sleep 1; done']
+          command: [sh, -c, 'until nc -z db 5432 && nc -z cache 6379 && nc -z queue 5672; do sleep 1; done']
       containers:
         - name: worker
           image: pokeshop-api:k3s
@@ -420,9 +312,7 @@ spec:
             - {name: DATABASE_URL, value: 'postgresql://ashketchum:squirtle123@db:5432/pokeshop?schema=public'}
             - {name: RABBITMQ_HOST, value: queue}
             - {name: POKE_API_BASE_URL, value: 'https://pokeapi.co/api/v2'}
-            - {name: COLLECTOR_ENDPOINT, value: 'http://otel-collector:4317'}
             - {name: NPM_RUN_COMMAND, value: worker}
-            - {name: SERVICE_NAME, value: pokeshop-worker}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -440,7 +330,7 @@ spec:
       initContainers:
         - name: wait-for-dependencies
           image: busybox:1.36
-          command: [sh, -c, 'until nc -z db 5432 && nc -z cache 6379 && nc -z stream 9092 && nc -z otel-collector 4317; do sleep 1; done']
+          command: [sh, -c, 'until nc -z db 5432 && nc -z cache 6379 && nc -z stream 9092; do sleep 1; done']
       containers:
         - name: streaming-worker
           image: pokeshop-api:k3s
@@ -448,10 +338,8 @@ spec:
           env:
             - {name: DATABASE_URL, value: 'postgresql://ashketchum:squirtle123@db:5432/pokeshop?schema=public'}
             - {name: POKE_API_BASE_URL, value: 'https://pokeapi.co/api/v2'}
-            - {name: COLLECTOR_ENDPOINT, value: 'http://otel-collector:4317'}
             - {name: NPM_RUN_COMMAND, value: stream-worker}
             - {name: KAFKA_BROKER, value: 'stream:9092'}
             - {name: KAFKA_TOPIC, value: pokemon}
             - {name: KAFKA_CLIENT_ID, value: streaming-worker}
             - {name: REDIS_URL, value: cache}
-            - {name: SERVICE_NAME, value: pokeshop-streaming-worker}

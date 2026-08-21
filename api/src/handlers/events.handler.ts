@@ -1,5 +1,4 @@
 import { getPokemonRepository } from '@pokemon/repositories';
-import { getTraceSummary } from './traceSummary.handler';
 
 const sleep = (milliseconds: number) => new Promise(resolve => setTimeout(resolve, milliseconds));
 
@@ -30,33 +29,6 @@ function startStream(ctx) {
 }
 
 export default function setupRoute(router) {
-  router.get('/events/traces/:traceId', async ctx => {
-    const { traceId } = ctx.params;
-    if (!/^[a-f0-9]{32}$/i.test(traceId)) {
-      ctx.status = 400;
-      ctx.body = { error: 'invalid trace ID' };
-      return;
-    }
-
-    const stream = startStream(ctx);
-    let lastSpanCount = 0;
-    let stableReads = 0;
-
-    for (let attempt = 0; attempt < 15 && !stream.isClosed(); attempt += 1) {
-      await sleep(attempt < 2 ? 400 : 800);
-      const summary = await getTraceSummary(traceId);
-      if (!summary) continue;
-
-      stream.send('summary', summary);
-      stableReads = summary.spans.length === lastSpanCount ? stableReads + 1 : 0;
-      lastSpanCount = summary.spans.length;
-      if (attempt >= 5 && stableReads >= 3) break;
-    }
-
-    stream.send('complete', { traceId });
-    stream.close();
-  });
-
   router.get('/events/pokemon/:pokemonId', async ctx => {
     const pokemonId = Number(ctx.params.pokemonId);
     const pokemonName = typeof ctx.query.name === 'string' ? ctx.query.name.toLowerCase() : '';

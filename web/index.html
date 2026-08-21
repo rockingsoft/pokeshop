@@ -14,7 +14,7 @@
         <div>
           <p class="eyebrow">Lamplight test subject</p>
           <h1>Pokeshop</h1>
-          <p>A minimal UI for exercising the instrumented API.</p>
+          <p>A minimal UI for exercising the zero-code instrumented API.</p>
         </div>
         <button id="refresh" type="button">Refresh</button>
       </header>
@@ -54,23 +54,6 @@
         <div id="pokemon-list" class="grid"></div>
       </section>
     </main>
-    <aside class="trace-panel" aria-labelledby="trace-title">
-      <div class="console-bar">
-        <div class="console-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-        <span>Pokeshop Dev Console</span>
-      </div>
-      <div class="console-content">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">OpenTelemetry · SSE live stream</p>
-            <h2 id="trace-title">Recent traces</h2>
-          </div>
-          <button id="clear-traces" class="secondary" type="button">Clear</button>
-        </div>
-        <p id="trace-empty" class="empty">Use the shop to stream trace summaries here in real time.</p>
-        <div id="trace-list" class="trace-list"></div>
-      </div>
-    </aside>
     </div>
     <script src="/app.js" defer></script>
   </body>

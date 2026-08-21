@@ -1,0 +1,23 @@
+test "web_zero_code" {
+  tags = ["web", "zero-code"]
+
+  step "load_homepage" {
+    http_request {
+      method = "GET"
+      url    = "${var.POKESHOP_WEB_URL}/"
+    }
+
+    check "homepage is served" {
+      response = {
+        "status code is 200" = response.status_code == 200
+      }
+    }
+
+    check "web server emits an HTTP span" {
+      spans {
+        matching = span.attributes["http.request.method"] == "GET"
+        at_least = 1
+      }
+    }
+  }
+}

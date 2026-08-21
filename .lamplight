@@ -16,8 +16,8 @@ variable "POKESHOP_GRPC_ADDRESS" {
   default = "localhost:8082"
 }
 
-variable "JAEGER_ENDPOINT" {
-  default = "http://localhost:16686"
+variable "POKESHOP_WEB_URL" {
+  default = "http://localhost:3000"
 }
 
 target "compose" {
@@ -25,14 +25,14 @@ target "compose" {
 
   docker_compose {
     project  = "pokeshop"
-    services = ["api", "rpc", "jaeger"]
+    services = ["api", "rpc", "web"]
   }
 
   variables = {
     POKESHOP_API_URL      = "http://api:8081"
     KAFKA_BROKER_URL      = "stream:9092"
     POKESHOP_GRPC_ADDRESS = "rpc:8082"
-    JAEGER_ENDPOINT       = "http://jaeger:16686"
+    POKESHOP_WEB_URL      = "http://web"
   }
 }
 
@@ -48,11 +48,16 @@ target "k3s" {
     POKESHOP_API_URL      = "http://api:8081"
     KAFKA_BROKER_URL      = "stream:9092"
     POKESHOP_GRPC_ADDRESS = "rpc:8082"
-    JAEGER_ENDPOINT       = "http://jaeger:16686"
+    POKESHOP_WEB_URL      = "http://web"
   }
 }
 
-datasource "jaeger" {
-  endpoint           = var.JAEGER_ENDPOINT
-  observation_window = duration("1m0s")
+datasource "otlp" {
+  endpoint           = "http://127.0.0.1:4318"
+  observation_window = duration("30s")
+}
+
+instrumentation "obi" {
+  open_ports          = [80]
+  context_propagation = "headers"
 }

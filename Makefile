@@ -17,7 +17,7 @@ clean:
 
 test:
 	@$(MAKE) --no-print-directory run >&2
-	@$(LAMPLIGHT) run --output $(LAMPLIGHT_OUTPUT)
+	@$(LAMPLIGHT) run --tag zero-code --output $(LAMPLIGHT_OUTPUT)
 
 test-k3s:
 	@$(MAKE) --no-print-directory k3s >&2
