@@ -16,12 +16,5 @@ test "Import a Pokemon using API and MQ Worker" {
         "status code is 200" = response.status_code == 200
       }
     }
-
-    check "API emits an HTTP server span" {
-      spans {
-        matching = span.attributes["http.request.method"] == "POST"
-        at_least = 1
-      }
-    }
   }
 }

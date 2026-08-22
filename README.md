@@ -27,9 +27,10 @@ make test
 Compose target by default and creates an
 ephemeral runner and OBI agent on the existing Compose network, so application
 images, source code, and environment variables do not need telemetry changes.
-The HTTP-facing scenarios assert the spans OBI observes. The gRPC and Kafka
-scenarios retain their functional response contracts because OBI does not
-currently correlate those protocol triggers in this stack.
+The web, list, and create scenarios assert the HTTP spans OBI observes. The
+asynchronous import, gRPC, and Kafka scenarios retain their functional response
+contracts because OBI does not consistently correlate those protocol paths in
+this stack.
 
 Stop and remove everything with `make clean`.
 
