@@ -33,6 +33,7 @@ services:
     #   - 15672:15672
     healthcheck:
       test: rabbitmq-diagnostics -q check_running
+      start_period: 30s
       interval: 1s
       timeout: 5s
       retries: 60
