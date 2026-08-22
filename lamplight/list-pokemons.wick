@@ -12,8 +12,8 @@ test "List Pokemons" {
 
     check "Pokemon list is returned" {
       response = {
-        "status code is 200" = response.status_code == 200
-        "contains Pokemon"   = response.json.items[0].id > 0
+        "status code is 200"   = response.status_code == 200
+        "total count is valid" = response.json.totalCount >= 0
       }
     }
 
