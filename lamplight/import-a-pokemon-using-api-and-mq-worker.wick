@@ -17,9 +17,24 @@ test "Import a Pokemon using API and MQ Worker" {
       }
     }
 
+  }
+
+  step "verify" {
+    http_request {
+      method = "GET"
+      url    = "${var.POKESHOP_API_URL}/pokemon?take=20&skip=0"
+    }
+
+    check "Imported Pokemon is visible" {
+      response = {
+        "status code is 200" = response.status_code == 200
+        "contains Pokemon"   = response.json.items[0].id > 0
+      }
+    }
+
     check "API emits an HTTP server span" {
       spans {
-        matching           = span.attributes["http.request.method"] == "POST"
+        matching           = span.attributes["http.request.method"] == "GET"
         at_least           = 1
         observation_window = duration("60s")
       }
