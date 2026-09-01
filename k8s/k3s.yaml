@@ -99,6 +99,7 @@ spec:
           readinessProbe:
             exec:
               command: [rabbitmq-diagnostics, -q, check_running]
+            initialDelaySeconds: 30
             periodSeconds: 3
 ---
 apiVersion: v1
