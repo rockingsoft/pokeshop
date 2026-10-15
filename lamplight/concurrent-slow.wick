@@ -1,0 +1,14 @@
+test "Concurrent slow request" {
+  tags = ["concurrency", "e2e"]
+
+  step "slow_request" {
+    http_request {
+      method = "GET"
+      url    = "${var.POKESHOP_API_URL}/pokemon/slow"
+    }
+
+    check "slow endpoint responds" {
+      response = { ok = response.status_code == 200 }
+    }
+  }
+}
