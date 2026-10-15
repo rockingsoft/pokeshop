@@ -7,6 +7,7 @@ import createHandler from '@pokemon/handlers/create.handler';
 import getHandler from '@pokemon/handlers/get.handler';
 import importHandler from '@pokemon/handlers/import.handler';
 import healthcheckHandler from '@pokemon/handlers/healthcheck.handler';
+import slowHandler from '@pokemon/handlers/slow.handler';
 import eventsHandler from '@pokemon/handlers/events.handler';
 import { setupSequelize } from '@pokemon/utils/db';
 
@@ -20,6 +21,7 @@ async function startApp() {
 
   const routeSetupFunctions = [
     healthcheckHandler,
+    slowHandler,
     createHandler,
     getHandler,
     importHandler,

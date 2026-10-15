@@ -1,0 +1,18 @@
+test "Concurrent fast request" {
+  tags = ["concurrency", "e2e"]
+
+  step "delayed_fast_request" {
+    http_request {
+      method = "GET"
+      url    = "${var.POKESHOP_API_URL}/pokemon/healthcheck"
+    }
+
+    request_hook {
+      command = ["sh", "-c", "sleep 0.5; cat"]
+    }
+
+    check "fast endpoint responds" {
+      response = { ok = response.status_code == 200 }
+    }
+  }
+}
